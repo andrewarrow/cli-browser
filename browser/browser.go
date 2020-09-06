@@ -3,6 +3,9 @@ package browser
 import (
 	"cli-browser/networking"
 	"fmt"
+	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type Browser struct {
@@ -17,5 +20,19 @@ func NewBrowser() *Browser {
 
 func (b *Browser) Start() {
 	s := networking.DoGet(b.Homepage, "")
-	fmt.Println(len(s))
+	z := html.NewTokenizer(strings.NewReader(s))
+	for {
+		tt := z.Next()
+
+		switch tt {
+		case html.ErrorToken:
+			fmt.Println("ERR", z.Err())
+			return
+		case html.TextToken:
+			fmt.Println(string(z.Text()))
+		case html.StartTagToken, html.EndTagToken:
+			tn, _ := z.TagName()
+			fmt.Println(string(tn))
+		}
+	}
 }
