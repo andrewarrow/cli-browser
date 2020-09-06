@@ -1,3 +1,3 @@
-module github.com/andrewarrow/cli-browser
+module cli-browser
 
 go 1.14

@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
-	"github.com/andrewarrow/cli-browser/browser"
+	"cli-browser/browser"
 )
 
 func main() {
@@ -15,5 +16,9 @@ func main() {
 	}
 
 	b := browser.NewBrowser()
-	fmt.Println(b)
+	go b.Start()
+
+	for {
+		time.Sleep(time.Second)
+	}
 }
