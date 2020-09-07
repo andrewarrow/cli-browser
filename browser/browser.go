@@ -14,6 +14,7 @@ var trOn = false
 var divId = 0
 var curDiv *TopDiv
 var divHolder = TopDiv{}
+var childCount = 0
 
 type Browser struct {
 	Homepage string
@@ -41,7 +42,10 @@ func (b *Browser) Start(u string) {
 			break
 		}
 	}
-	fmt.Printf("%d. DIV (%s)\n", divId, walkDivs(&divHolder))
+	for _, c := range divHolder.Children {
+		countAllChildren(0, c)
+		fmt.Printf("%d. DIV (%d)\n", c.Id, childCount-1)
+	}
 }
 
 func handleTag(z *html.Tokenizer) bool {
@@ -102,19 +106,42 @@ func handleTag(z *html.Tokenizer) bool {
 	}
 	return true
 }
-func walkDivs(td *TopDiv) string {
+func countAllChildren(start int, td *TopDiv) {
+	if start == 0 {
+		childCount = 0
+	}
 	m := map[int]bool{}
 	for {
-		fmt.Printf("%+v\n", *td)
-		if len(td.Children) == 0 || m[td.Id] {
-			return ""
+		if len(td.Children) == 0 {
+			childCount++
+			return
+		}
+		if m[td.Id] {
+			childCount++
+			return
 		}
 		m[td.Id] = true
 		for _, c := range td.Children {
-			walkDivs(c)
+			countAllChildren(start+1, c)
 		}
 	}
-	return ""
+}
+func walkDivs(spaces string, td *TopDiv) {
+	m := map[int]bool{}
+	for {
+		if len(td.Children) == 0 {
+			fmt.Printf("%s%d\n", spaces, td.Id)
+			return
+		}
+		if m[td.Id] {
+			return
+		}
+		fmt.Printf("%s%d\n", spaces, td.Id)
+		m[td.Id] = true
+		for _, c := range td.Children {
+			walkDivs(spaces+"  ", c)
+		}
+	}
 }
 func getAtts(z *html.Tokenizer) map[string]string {
 	atts := map[string]string{}
