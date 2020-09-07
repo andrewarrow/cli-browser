@@ -10,7 +10,7 @@ import (
 
 func DoGet(route, params string) string {
 	if os.Getenv("EXAMPLE") != "" {
-		b, _ := ioutil.ReadFile("example.html")
+		b, _ := ioutil.ReadFile("example3.html")
 		return string(b)
 	}
 	agent := "https://github.com/andrewarrow/cli-browser"

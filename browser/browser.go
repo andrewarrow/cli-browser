@@ -3,6 +3,7 @@ package browser
 import (
 	"cli-browser/networking"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -14,6 +15,7 @@ var trOn = false
 var divId = 0
 var curDiv *TopDiv
 var divHolder = TopDiv{}
+var divMap = map[int]*TopDiv{}
 var childCount = 0
 
 type Browser struct {
@@ -33,16 +35,23 @@ func NewBrowser() *Browser {
 	return &b
 }
 
-func (b *Browser) Start(u string) {
+func (b *Browser) Start(arg1 string) {
 	// s?i=aps&k=hands with hearts straight borders&ref=nb_sb_noss&url=search-alias=
-	s := networking.DoGet(u, "")
+	s := networking.DoGet("", "")
 	z := html.NewTokenizer(strings.NewReader(s))
 	for {
 		if handleTag(z) == false {
 			break
 		}
 	}
-	for _, c := range divHolder.Children {
+	requestedDiv := divHolder.Children
+	if arg1 != "" {
+		tokens := strings.Split(arg1, ",")
+		//tagType := tokens[0]
+		tagId, _ := strconv.Atoi(tokens[1])
+		requestedDiv = divMap[tagId].Children
+	}
+	for _, c := range requestedDiv {
 		countAllChildren(0, c)
 		fmt.Printf("%d. DIV (%d)\n", c.Id, childCount-1)
 	}
@@ -99,6 +108,7 @@ func handleTag(z *html.Tokenizer) bool {
 			} else {
 				td.Parent = &divHolder
 			}
+			divMap[td.Id] = &td
 			td.Parent.Children = append(td.Parent.Children, &td)
 			curDiv = &td
 		}
