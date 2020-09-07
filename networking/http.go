@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 )
 
 func DoGet(route, params string) string {
+	if os.Getenv("EXAMPLE") != "" {
+		b, _ := ioutil.ReadFile("example2.html")
+		return string(b)
+	}
 	agent := "https://github.com/andrewarrow/cli-browser"
 	urlString := fmt.Sprintf("%s", route)
 	//fmt.Println(url)
