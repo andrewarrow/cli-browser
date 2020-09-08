@@ -24,9 +24,9 @@ type Browser struct {
 
 type TopDiv struct {
 	Id       int
-	Name     string
 	Parent   *TopDiv
 	Children []*TopDiv
+	Text     string
 }
 
 func NewBrowser() *Browser {
@@ -69,6 +69,12 @@ func handleTag(z *html.Tokenizer) bool {
 		if trOn {
 			//fmt.Printf("|%s|\n", string(z.Text()))
 		}
+		if curDiv != nil {
+			s := strings.TrimSpace(string(z.Text()))
+			if s != "" {
+				curDiv.Text = curDiv.Text + "|" + s
+			}
+		}
 	case html.EndTagToken:
 		tn, _ := z.TagName()
 		tns := string(tn)
@@ -98,11 +104,9 @@ func handleTag(z *html.Tokenizer) bool {
 			trOn = true
 			//fmt.Printf("\n            %s\n", "tr")
 		} else if tns == "div" {
-			m := getAtts(z)
 			divId++
 			td := TopDiv{}
 			td.Id = divId
-			td.Name = m["hi"]
 			if curDiv != nil {
 				td.Parent = curDiv
 			} else {
@@ -123,6 +127,7 @@ func countAllChildren(start int, td *TopDiv) {
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
+			fmt.Println(td.Text)
 			childCount++
 			return
 		}
