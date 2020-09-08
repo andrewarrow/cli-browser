@@ -1,10 +1,9 @@
 package main
 
 import (
+	"cli-browser/browser"
 	"fmt"
 	"os"
-
-	"cli-browser/browser"
 )
 
 func main() {

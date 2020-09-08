@@ -37,7 +37,11 @@ func NewBrowser() *Browser {
 
 func (b *Browser) Start(arg1 string) {
 	// s?i=aps&k=hands with hearts straight borders&ref=nb_sb_noss&url=search-alias=
-	s := networking.DoGet("", "")
+	startUrl := ""
+	if strings.HasPrefix(arg1, "http") {
+		startUrl = arg1
+	}
+	s := networking.DoGet(startUrl)
 	z := html.NewTokenizer(strings.NewReader(s))
 	for {
 		if handleTag(z) == false {
@@ -45,7 +49,7 @@ func (b *Browser) Start(arg1 string) {
 		}
 	}
 	requestedDiv := divHolder.Children
-	if arg1 != "" {
+	if arg1 != "" && !strings.HasPrefix(arg1, "http") {
 		tokens := strings.Split(arg1, ",")
 		//tagType := tokens[0]
 		tagId, _ := strconv.Atoi(tokens[1])
