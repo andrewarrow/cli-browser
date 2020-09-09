@@ -35,13 +35,9 @@ func NewBrowser() *Browser {
 	return &b
 }
 
-func (b *Browser) Start(arg1 string) {
+func (b *Browser) Start(arg1, arg2 string) {
 	// s?i=aps&k=hands with hearts straight borders&ref=nb_sb_noss&url=search-alias=
-	startUrl := ""
-	if strings.HasPrefix(arg1, "http") {
-		startUrl = arg1
-	}
-	s := networking.DoGet(startUrl)
+	s := networking.DoGet(arg1)
 	z := html.NewTokenizer(strings.NewReader(s))
 	for {
 		if handleTag(z) == false {
@@ -49,8 +45,8 @@ func (b *Browser) Start(arg1 string) {
 		}
 	}
 	requestedDiv := divHolder.Children
-	if arg1 != "" && !strings.HasPrefix(arg1, "http") {
-		tokens := strings.Split(arg1, ",")
+	if arg2 != "" {
+		tokens := strings.Split(arg2, ",")
 		//tagType := tokens[0]
 		tagId, _ := strconv.Atoi(tokens[1])
 		requestedDiv = divMap[tagId].Children
@@ -131,7 +127,7 @@ func countAllChildren(start int, td *TopDiv) {
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
-			fmt.Println(td.Text)
+			//fmt.Println(td.Text)
 			childCount++
 			return
 		}

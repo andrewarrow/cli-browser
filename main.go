@@ -9,11 +9,16 @@ import (
 func main() {
 	fmt.Println("cli-browser")
 
-	arg1 := ""
-	if len(os.Args) > 1 {
-		arg1 = os.Args[1]
+	if len(os.Args) == 1 {
+		fmt.Println("first arg should be url")
+		return
+	}
+	arg1 := os.Args[1]
+	arg2 := ""
+	if len(os.Args) > 2 {
+		arg2 = os.Args[2]
 	}
 
 	b := browser.NewBrowser()
-	b.Start(arg1)
+	b.Start(arg1, arg2)
 }
