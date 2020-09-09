@@ -3,6 +3,7 @@ package browser
 import (
 	"cli-browser/networking"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -14,6 +15,10 @@ var tables = 0
 var trOn = false
 var divId = 0
 var curDiv *TopDiv
+var prevTag = ""
+var prevPrevTag = ""
+var prevTagAtts = map[string]string{}
+var prevPrevTagAtts = map[string]string{}
 var divHolder = TopDiv{}
 var divMap = map[int]*TopDiv{}
 var childCount = 0
@@ -72,7 +77,10 @@ func handleTag(z *html.Tokenizer) bool {
 		if curDiv != nil {
 			s := strings.TrimSpace(string(z.Text()))
 			if s != "" {
-				curDiv.Text = curDiv.Text + "|" + s
+				combo := prevPrevTag + "," + prevTag
+				if combo == "a,span" {
+					curDiv.Text = curDiv.Text + "|" + prevPrevTagAtts["href"] + " " + combo + "|" + s
+				}
 			}
 		}
 	case html.EndTagToken:
@@ -86,14 +94,17 @@ func handleTag(z *html.Tokenizer) bool {
 	case html.StartTagToken:
 		tn, _ := z.TagName()
 		tns := string(tn)
+		prevPrevTag = prevTag
+		prevTag = tns
+		atts := getAtts(z)
+		prevPrevTagAtts = prevTagAtts
+		prevTagAtts = atts
 		if tns == "form" {
 			forms++
-			atts := getAtts(z)
 			if atts["action"] != "" {
 				fmt.Printf("%d. FORM %s %s\n", forms, atts["method"], atts["action"])
 			}
 		} else if tns == "input" {
-			atts := getAtts(z)
 			if atts["name"] != "" {
 				fmt.Printf("          %s\n", atts["name"])
 			}
@@ -127,7 +138,9 @@ func countAllChildren(start int, td *TopDiv) {
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
-			//fmt.Println(td.Text)
+			if os.Getenv("VERBOSE") != "" {
+				fmt.Println(td.Text)
+			}
 			childCount++
 			return
 		}
