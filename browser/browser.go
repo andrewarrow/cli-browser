@@ -31,7 +31,9 @@ type Browser struct {
 }
 
 type TopDiv struct {
+	Name     string
 	Id       int
+	Atts     map[string]string
 	Parent   *TopDiv
 	Children []*TopDiv
 	Text     string
@@ -73,17 +75,21 @@ func (b *Browser) Start(arg1, arg2 string) {
 	items := files.OrderOps(arg1)
 	for _, item := range items {
 		tokens := strings.Split(item, ",")
-		//tagType := tokens[0]
-		tagId, _ := strconv.Atoi(tokens[1])
-		if len(tokens) > 3 {
-			findTag = tokens[2]
-			findAtt = tokens[3]
+		tagType := tokens[0]
+		if tagType == "div" {
+			tagId, _ := strconv.Atoi(tokens[1])
+			requestedDiv = divMap[tagId].Children
+		} else {
+			findTag = tagType
+			findAtt = tokens[1]
 		}
-		requestedDiv = divMap[tagId].Children
 	}
 	for _, c := range requestedDiv {
 		countAllChildren(0, c)
 		fmt.Printf("%d. DIV (%d)\n", c.Id, childCount-1)
+		if findTag != "" {
+			findTagInChildren(0, c)
+		}
 	}
 }
 
@@ -113,7 +119,7 @@ func handleTag(z *html.Tokenizer) bool {
 		tns := string(tn)
 		if tns == "tr" {
 			trOn = false
-		} else if tns == "div" {
+		} else if tns == "div" || tns == "a" {
 			curDiv = curDiv.Parent
 		}
 	case html.StartTagToken:
@@ -139,10 +145,12 @@ func handleTag(z *html.Tokenizer) bool {
 		} else if tns == "tr" {
 			trOn = true
 			//fmt.Printf("\n            %s\n", "tr")
-		} else if tns == "div" {
+		} else if tns == "div" || tns == "a" {
 			divId++
 			td := TopDiv{}
 			td.Id = divId
+			td.Name = tns
+			td.Atts = atts
 			if curDiv != nil {
 				td.Parent = curDiv
 			} else {
@@ -155,6 +163,24 @@ func handleTag(z *html.Tokenizer) bool {
 
 	}
 	return true
+}
+func findTagInChildren(start int, td *TopDiv) {
+	m := map[int]bool{}
+	for {
+		if len(td.Children) == 0 {
+			return
+		}
+		if m[td.Id] {
+			return
+		}
+		m[td.Id] = true
+		if td.Name == findTag {
+			fmt.Println(td.Atts[findAtt])
+		}
+		for _, c := range td.Children {
+			findTagInChildren(start+1, c)
+		}
+	}
 }
 func countAllChildren(start int, td *TopDiv) {
 	if start == 0 {
