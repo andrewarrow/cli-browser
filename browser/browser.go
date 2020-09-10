@@ -69,7 +69,10 @@ func (b *Browser) Start(arg1, arg2 string) {
 			files.Pop(arg1)
 			return
 		}
-		tokens := strings.Split(arg2, ",")
+	}
+	items := files.OrderOps(arg1)
+	for _, item := range items {
+		tokens := strings.Split(item, ",")
 		//tagType := tokens[0]
 		tagId, _ := strconv.Atoi(tokens[1])
 		if len(tokens) > 3 {
