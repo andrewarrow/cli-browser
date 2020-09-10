@@ -65,6 +65,10 @@ func (b *Browser) Start(arg1, arg2 string) {
 			files.Push(arg1, tokens[1])
 			return
 		}
+		if strings.HasPrefix(arg2, "pop") {
+			files.Pop(arg1)
+			return
+		}
 		tokens := strings.Split(arg2, ",")
 		//tagType := tokens[0]
 		tagId, _ := strconv.Atoi(tokens[1])

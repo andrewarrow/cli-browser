@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"io/ioutil"
+	"os"
 )
 
 const DIR = ".cli-browser-files"
@@ -39,4 +40,10 @@ func OrderOps(url string) []string {
 		list = append(list, string(d))
 	}
 	return list
+}
+func Pop(url string) string {
+	items := List(url)
+	d, _ := ioutil.ReadFile(DIR + "/" + Hash(url) + "/" + items[0])
+	os.Remove(DIR + "/" + Hash(url) + "/" + items[0])
+	return string(d)
 }
