@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"cli-browser/files"
 	"cli-browser/networking"
 	"fmt"
 	"os"
@@ -22,6 +23,8 @@ var prevPrevTagAtts = map[string]string{}
 var divHolder = TopDiv{}
 var divMap = map[int]*TopDiv{}
 var childCount = 0
+var findTag = ""
+var findAtt = ""
 
 type Browser struct {
 	Homepage string
@@ -51,9 +54,19 @@ func (b *Browser) Start(arg1, arg2 string) {
 	}
 	requestedDiv := divHolder.Children
 	if arg2 != "" {
+		if arg2 == "ls" {
+			for i, file := range files.List(arg1) {
+				fmt.Printf("%2d. %s\n", i+1, file)
+			}
+			return
+		}
 		tokens := strings.Split(arg2, ",")
 		//tagType := tokens[0]
 		tagId, _ := strconv.Atoi(tokens[1])
+		if len(tokens) > 3 {
+			findTag = tokens[2]
+			findAtt = tokens[3]
+		}
 		requestedDiv = divMap[tagId].Children
 	}
 	for _, c := range requestedDiv {
@@ -77,10 +90,10 @@ func handleTag(z *html.Tokenizer) bool {
 		if curDiv != nil {
 			s := strings.TrimSpace(string(z.Text()))
 			if s != "" {
-				combo := prevPrevTag + "," + prevTag
-				if combo == "a,span" {
-					curDiv.Text = curDiv.Text + "|" + prevPrevTagAtts["href"] + " " + combo + "|" + s
-				}
+				//combo := prevPrevTag + "," + prevTag
+				//if combo == "a,span" {
+				//curDiv.Text = curDiv.Text + "|" + prevPrevTagAtts["href"] + " " + combo + "|" + s
+				//}
 			}
 		}
 	case html.EndTagToken:
@@ -102,15 +115,15 @@ func handleTag(z *html.Tokenizer) bool {
 		if tns == "form" {
 			forms++
 			if atts["action"] != "" {
-				fmt.Printf("%d. FORM %s %s\n", forms, atts["method"], atts["action"])
+				//fmt.Printf("%d. FORM %s %s\n", forms, atts["method"], atts["action"])
 			}
 		} else if tns == "input" {
 			if atts["name"] != "" {
-				fmt.Printf("          %s\n", atts["name"])
+				//fmt.Printf("          %s\n", atts["name"])
 			}
 		} else if tns == "table" {
 			tables++
-			fmt.Printf("%d. TABLE\n", tables)
+			//fmt.Printf("%d. TABLE\n", tables)
 		} else if tns == "tr" {
 			trOn = true
 			//fmt.Printf("\n            %s\n", "tr")

@@ -1,19 +1,13 @@
 package networking
 
 import (
+	"cli-browser/files"
 	"fmt"
-	"hash/fnv"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
 )
-
-func Hash(s string) string {
-	h := fnv.New32a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum32())
-}
 
 func DoGet(route string) string {
 	if os.Getenv("EXAMPLE") != "" {
@@ -23,10 +17,11 @@ func DoGet(route string) string {
 	agent := "https://github.com/andrewarrow/cli-browser"
 	urlString := fmt.Sprintf("%s", route)
 
-	hash := Hash(urlString)
+	hash := files.Hash(urlString)
 
 	os.Mkdir(".cli-browser-files", 0755)
-	b, err := ioutil.ReadFile(".cli-browser-files/" + hash)
+	os.Mkdir(".cli-browser-files/"+hash, 0755)
+	b, err := ioutil.ReadFile(".cli-browser-files/" + hash + "/index.html")
 	if err == nil {
 		return string(b)
 	}
@@ -44,7 +39,7 @@ func DoGet(route string) string {
 		if err == nil {
 			fmt.Println("resp.StatusCode", resp.StatusCode, len(body))
 			if resp.StatusCode == 200 {
-				ioutil.WriteFile(".cli-browser-files/"+hash, body, 0775)
+				ioutil.WriteFile(".cli-browser-files/"+hash+"/index.html", body, 0775)
 				return string(body)
 			} else {
 				//fmt.Println(id, string(body))
