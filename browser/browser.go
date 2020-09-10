@@ -55,7 +55,7 @@ func (b *Browser) Start(arg1, arg2 string) {
 	requestedDiv := divHolder.Children
 	if arg2 != "" {
 		if arg2 == "ls" {
-			for i, file := range files.List(arg1) {
+			for i, file := range files.OrderOps(arg1) {
 				fmt.Printf("%2d. %s\n", i+1, file)
 			}
 			return
