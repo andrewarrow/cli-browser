@@ -20,3 +20,9 @@ func List(url string) []string {
 	}
 	return list
 }
+
+func Push(url, payload string) {
+	items := List(url)
+	ioutil.WriteFile(".cli-browser-files/"+Hash(url)+"/"+
+		fmt.Sprintf("%05d.txt", len(items)), []byte(payload), 0755)
+}
