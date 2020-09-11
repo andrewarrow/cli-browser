@@ -80,15 +80,15 @@ func (b *Browser) Start(arg1, arg2 string) {
 	}
 	items := files.OrderOps(arg1)
 	for _, item := range items {
-		tokens := strings.Split(item, ",")
-		tagType := tokens[0]
-		if tagType == "div" {
-			tagId, _ := strconv.Atoi(tokens[1])
-			requestedTag = tagMap[tagId].Children
-		} else {
-			findTag = tagType
-			findAtt = tokens[1]
-		}
+		//tokens := strings.Split(item, ",")
+		//tagType := tokens[0]
+		//if tagType == "div" {
+		tagId, _ := strconv.Atoi(item)
+		requestedTag = tagMap[tagId].Children
+		//} else {
+		//	findTag = tagType
+		//	findAtt = tokens[1]
+		//}
 	}
 	for _, c := range requestedTag {
 		countAllChildren(0, c)
@@ -97,6 +97,7 @@ func (b *Browser) Start(arg1, arg2 string) {
 			findTagInChildren(0, c)
 		}
 	}
+	walkDivs("", &tagHolder)
 }
 
 func handleTag(z *html.Tokenizer) bool {
@@ -108,22 +109,27 @@ func handleTag(z *html.Tokenizer) bool {
 		fmt.Println("ERR", z.Err())
 		return false
 	case html.TextToken:
-		if trOn {
-			//fmt.Printf("|%s|\n", string(z.Text()))
+		t := strings.TrimSpace(string(z.Text()))
+		if t == "" {
+			return true
 		}
-		if curTag != nil {
-			s := strings.TrimSpace(string(z.Text()))
-			if s != "" {
-				//combo := prevPrevTag + "," + prevTag
-				//if combo == "a,span" {
-				//curTag.Text = curTag.Text + "|" + prevPrevTagAtts["href"] + " " + combo + "|" + s
-				//}
-			}
-		}
+		tagId++
+		at := ATag{}
+		at.Id = tagId
+		at.Name = "text"
+		at.Parent = curTag
+		tagMap[at.Id] = &at
+		at.Parent.Children = append(at.Parent.Children, &at)
+		curTag = &at
 	case html.EndTagToken:
 		//tn, _ := z.TagName()
 		//tns := string(tn)
-		curTag = curTag.Parent
+		//fmt.Printf("ending %s -> %s,%s\n", tns, curTag.Name, curTag.Parent.Name)
+		if curTag.Name == "text" {
+			curTag = curTag.Parent.Parent
+		} else {
+			curTag = curTag.Parent
+		}
 	case html.StartTagToken:
 		tn, _ := z.TagName()
 		tns := string(tn)
@@ -133,19 +139,23 @@ func handleTag(z *html.Tokenizer) bool {
 		prevPrevTagAtts = prevTagAtts
 		prevTagAtts = atts
 
-		tagId++
-		td := ATag{}
-		td.Id = tagId
-		td.Name = tns
-		td.Atts = atts
-		if curTag != nil {
-			td.Parent = curTag
-		} else {
-			td.Parent = &tagHolder
+		if tns == "link" {
+			return true
 		}
-		tagMap[td.Id] = &td
-		td.Parent.Children = append(td.Parent.Children, &td)
-		curTag = &td
+
+		tagId++
+		at := ATag{}
+		at.Id = tagId
+		at.Name = tns
+		at.Atts = atts
+		if curTag != nil {
+			at.Parent = curTag
+		} else {
+			at.Parent = &tagHolder
+		}
+		tagMap[at.Id] = &at
+		at.Parent.Children = append(at.Parent.Children, &at)
+		curTag = &at
 
 	}
 	return true
@@ -195,13 +205,13 @@ func walkDivs(spaces string, td *ATag) {
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
-			fmt.Printf("%s%d\n", spaces, td.Id)
+			fmt.Printf("%s%s\n", spaces, td.Name)
 			return
 		}
 		if m[td.Id] {
 			return
 		}
-		fmt.Printf("%s%d\n", spaces, td.Id)
+		fmt.Printf("%s%s\n", spaces, td.Name)
 		m[td.Id] = true
 		for _, c := range td.Children {
 			walkDivs(spaces+"  ", c)
