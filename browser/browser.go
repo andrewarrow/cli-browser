@@ -14,14 +14,14 @@ import (
 var forms = 0
 var tables = 0
 var trOn = false
-var divId = 0
-var curDiv *TopDiv
+var tagId = 0
+var curTag *ATag
 var prevTag = ""
 var prevPrevTag = ""
 var prevTagAtts = map[string]string{}
 var prevPrevTagAtts = map[string]string{}
-var divHolder = TopDiv{}
-var divMap = map[int]*TopDiv{}
+var tagHolder = ATag{}
+var tagMap = map[int]*ATag{}
 var childCount = 0
 var findTag = ""
 var findAtt = ""
@@ -30,12 +30,12 @@ type Browser struct {
 	Homepage string
 }
 
-type TopDiv struct {
+type ATag struct {
 	Name     string
 	Id       int
 	Atts     map[string]string
-	Parent   *TopDiv
-	Children []*TopDiv
+	Parent   *ATag
+	Children []*ATag
 	Text     string
 }
 
@@ -60,7 +60,7 @@ func (b *Browser) Start(arg1, arg2 string) {
 			break
 		}
 	}
-	requestedDiv := divHolder.Children
+	requestedTag := tagHolder.Children
 	if arg2 != "" {
 		if arg2 == "ls" {
 			for i, file := range files.OrderOps(arg1) {
@@ -84,15 +84,15 @@ func (b *Browser) Start(arg1, arg2 string) {
 		tagType := tokens[0]
 		if tagType == "div" {
 			tagId, _ := strconv.Atoi(tokens[1])
-			requestedDiv = divMap[tagId].Children
+			requestedTag = tagMap[tagId].Children
 		} else {
 			findTag = tagType
 			findAtt = tokens[1]
 		}
 	}
-	for _, c := range requestedDiv {
+	for _, c := range requestedTag {
 		countAllChildren(0, c)
-		fmt.Printf("%d. DIV (%d)\n", c.Id, childCount-1)
+		fmt.Printf("%d. %10s (%d)\n", c.Id, c.Name, childCount-1)
 		if findTag != "" {
 			findTagInChildren(0, c)
 		}
@@ -111,23 +111,19 @@ func handleTag(z *html.Tokenizer) bool {
 		if trOn {
 			//fmt.Printf("|%s|\n", string(z.Text()))
 		}
-		if curDiv != nil {
+		if curTag != nil {
 			s := strings.TrimSpace(string(z.Text()))
 			if s != "" {
 				//combo := prevPrevTag + "," + prevTag
 				//if combo == "a,span" {
-				//curDiv.Text = curDiv.Text + "|" + prevPrevTagAtts["href"] + " " + combo + "|" + s
+				//curTag.Text = curTag.Text + "|" + prevPrevTagAtts["href"] + " " + combo + "|" + s
 				//}
 			}
 		}
 	case html.EndTagToken:
-		tn, _ := z.TagName()
-		tns := string(tn)
-		if tns == "tr" {
-			trOn = false
-		} else if tns == "div" || tns == "a" {
-			curDiv = curDiv.Parent
-		}
+		//tn, _ := z.TagName()
+		//tns := string(tn)
+		curTag = curTag.Parent
 	case html.StartTagToken:
 		tn, _ := z.TagName()
 		tns := string(tn)
@@ -136,41 +132,25 @@ func handleTag(z *html.Tokenizer) bool {
 		atts := getAtts(z)
 		prevPrevTagAtts = prevTagAtts
 		prevTagAtts = atts
-		if tns == "form" {
-			forms++
-			if atts["action"] != "" {
-				//fmt.Printf("%d. FORM %s %s\n", forms, atts["method"], atts["action"])
-			}
-		} else if tns == "input" {
-			if atts["name"] != "" {
-				//fmt.Printf("          %s\n", atts["name"])
-			}
-		} else if tns == "table" {
-			tables++
-			//fmt.Printf("%d. TABLE\n", tables)
-		} else if tns == "tr" {
-			trOn = true
-			//fmt.Printf("\n            %s\n", "tr")
-		} else if tns == "div" || tns == "a" {
-			divId++
-			td := TopDiv{}
-			td.Id = divId
-			td.Name = tns
-			td.Atts = atts
-			if curDiv != nil {
-				td.Parent = curDiv
-			} else {
-				td.Parent = &divHolder
-			}
-			divMap[td.Id] = &td
-			td.Parent.Children = append(td.Parent.Children, &td)
-			curDiv = &td
+
+		tagId++
+		td := ATag{}
+		td.Id = tagId
+		td.Name = tns
+		td.Atts = atts
+		if curTag != nil {
+			td.Parent = curTag
+		} else {
+			td.Parent = &tagHolder
 		}
+		tagMap[td.Id] = &td
+		td.Parent.Children = append(td.Parent.Children, &td)
+		curTag = &td
 
 	}
 	return true
 }
-func findTagInChildren(start int, td *TopDiv) {
+func findTagInChildren(start int, td *ATag) {
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
@@ -188,7 +168,7 @@ func findTagInChildren(start int, td *TopDiv) {
 		}
 	}
 }
-func countAllChildren(start int, td *TopDiv) {
+func countAllChildren(start int, td *ATag) {
 	if start == 0 {
 		childCount = 0
 	}
@@ -211,7 +191,7 @@ func countAllChildren(start int, td *TopDiv) {
 		}
 	}
 }
-func walkDivs(spaces string, td *TopDiv) {
+func walkDivs(spaces string, td *ATag) {
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
