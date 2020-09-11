@@ -4,14 +4,13 @@ import (
 	"cli-browser/files"
 	"cli-browser/networking"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
 )
 
-var forms = 0
+var body bool
 var tables = 0
 var trOn = false
 var tagId = 0
@@ -23,6 +22,7 @@ var prevPrevTagAtts = map[string]string{}
 var tagHolder = ATag{}
 var tagMap = map[int]*ATag{}
 var childCount = 0
+var foundText = ""
 var findTag = ""
 var findAtt = ""
 
@@ -91,13 +91,14 @@ func (b *Browser) Start(arg1, arg2 string) {
 		//}
 	}
 	for _, c := range requestedTag {
-		countAllChildren(0, c)
-		fmt.Printf("%d. %10s (%d)\n", c.Id, c.Name, childCount-1)
+		countAllChildren(0, "Sponsored", c)
+		fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, foundText)
 		if findTag != "" {
 			findTagInChildren(0, c)
 		}
+		//walkDivs("", c)
 	}
-	walkDivs("", &tagHolder)
+	//walkDivs("", &tagHolder)
 }
 
 func handleTag(z *html.Tokenizer) bool {
@@ -109,6 +110,9 @@ func handleTag(z *html.Tokenizer) bool {
 		fmt.Println("ERR", z.Err())
 		return false
 	case html.TextToken:
+		if body == false {
+			return true
+		}
 		t := strings.TrimSpace(string(z.Text()))
 		if t == "" {
 			return true
@@ -117,11 +121,15 @@ func handleTag(z *html.Tokenizer) bool {
 		at := ATag{}
 		at.Id = tagId
 		at.Name = "text"
+		at.Text = t
 		at.Parent = curTag
 		tagMap[at.Id] = &at
 		at.Parent.Children = append(at.Parent.Children, &at)
 		curTag = &at
 	case html.EndTagToken:
+		if body == false {
+			return true
+		}
 		//tn, _ := z.TagName()
 		//tns := string(tn)
 		//fmt.Printf("ending %s -> %s,%s\n", tns, curTag.Name, curTag.Parent.Name)
@@ -133,15 +141,20 @@ func handleTag(z *html.Tokenizer) bool {
 	case html.StartTagToken:
 		tn, _ := z.TagName()
 		tns := string(tn)
+
+		if tns == "body" {
+			body = true
+		}
+
+		if body == false {
+			return true
+		}
+
 		prevPrevTag = prevTag
 		prevTag = tns
 		atts := getAtts(z)
 		prevPrevTagAtts = prevTagAtts
 		prevTagAtts = atts
-
-		if tns == "link" {
-			return true
-		}
 
 		tagId++
 		at := ATag{}
@@ -178,15 +191,16 @@ func findTagInChildren(start int, td *ATag) {
 		}
 	}
 }
-func countAllChildren(start int, td *ATag) {
+func countAllChildren(start int, searchText string, td *ATag) {
 	if start == 0 {
 		childCount = 0
+		foundText = ""
 	}
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
-			if os.Getenv("VERBOSE") != "" {
-				fmt.Println(td.Text)
+			if td.Text == searchText {
+				foundText = searchText
 			}
 			childCount++
 			return
@@ -197,7 +211,7 @@ func countAllChildren(start int, td *ATag) {
 		}
 		m[td.Id] = true
 		for _, c := range td.Children {
-			countAllChildren(start+1, c)
+			countAllChildren(start+1, searchText, c)
 		}
 	}
 }
@@ -205,13 +219,13 @@ func walkDivs(spaces string, td *ATag) {
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
-			fmt.Printf("%s%s\n", spaces, td.Name)
+			fmt.Printf("%s%s %s\n", spaces, td.Name, td.Text)
 			return
 		}
 		if m[td.Id] {
 			return
 		}
-		fmt.Printf("%s%s\n", spaces, td.Name)
+		fmt.Printf("%s%s %s\n", spaces, td.Name, td.Text)
 		m[td.Id] = true
 		for _, c := range td.Children {
 			walkDivs(spaces+"  ", c)
