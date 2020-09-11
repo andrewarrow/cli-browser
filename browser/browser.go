@@ -47,6 +47,12 @@ func NewBrowser() *Browser {
 
 func (b *Browser) Start(arg1, arg2 string) {
 	// s?i=aps&k=hands with hearts straight borders&ref=nb_sb_noss&url=search-alias=
+	if arg1 == "ls" {
+		for i, url := range files.History() {
+			fmt.Printf("%2d. %s\n", i+1, url)
+		}
+		return
+	}
 	s := networking.DoGet(arg1)
 	z := html.NewTokenizer(strings.NewReader(s))
 	for {

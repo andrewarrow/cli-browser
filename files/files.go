@@ -5,6 +5,7 @@ import (
 	"hash/fnv"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 const DIR = ".cli-browser-files"
@@ -13,6 +14,21 @@ func Hash(s string) string {
 	h := fnv.New32a()
 	h.Write([]byte(s))
 	return fmt.Sprintf("%d", h.Sum32())
+}
+
+func History() []string {
+	d, _ := ioutil.ReadFile(DIR + "/history.txt")
+	items := strings.Split(string(d), "\n")
+	return items[0 : len(items)-1]
+}
+func AddToHistory(u string) {
+	items := History()
+	f, _ := os.OpenFile(DIR+"/history.txt", os.O_CREATE|os.O_WRONLY, 0644)
+	defer f.Close()
+	f.WriteString(u + "\n")
+	for _, item := range items {
+		f.WriteString(item + "\n")
+	}
 }
 
 func List(url string) []string {

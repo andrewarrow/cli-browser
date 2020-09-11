@@ -25,6 +25,7 @@ func DoGet(route string) string {
 	if err == nil {
 		return string(b)
 	}
+	files.AddToHistory(route)
 	//fmt.Println(url)
 	request, _ := http.NewRequest("GET", urlString, nil)
 	request.Header.Set("User-Agent", agent)
