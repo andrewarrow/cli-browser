@@ -19,6 +19,9 @@ func List(url string) []string {
 	files, _ := ioutil.ReadDir(DIR + "/" + Hash(url))
 	list := []string{}
 	for _, file := range files {
+		if file.Name() == "index.html" {
+			continue
+		}
 		list = append(list, file.Name())
 	}
 	return list
@@ -27,7 +30,7 @@ func List(url string) []string {
 func Push(url, payload string) {
 	items := List(url)
 	ioutil.WriteFile(DIR+"/"+Hash(url)+"/"+
-		fmt.Sprintf("%05d.txt", len(items)), []byte(payload), 0755)
+		fmt.Sprintf("%05d.txt", len(items)+1), []byte(payload), 0755)
 }
 func OrderOps(url string) []string {
 	files, _ := ioutil.ReadDir(DIR + "/" + Hash(url))
@@ -43,7 +46,7 @@ func OrderOps(url string) []string {
 }
 func Pop(url string) string {
 	items := List(url)
-	d, _ := ioutil.ReadFile(DIR + "/" + Hash(url) + "/" + items[0])
-	os.Remove(DIR + "/" + Hash(url) + "/" + items[0])
+	d, _ := ioutil.ReadFile(DIR + "/" + Hash(url) + "/" + items[len(items)-1])
+	os.Remove(DIR + "/" + Hash(url) + "/" + items[len(items)-1])
 	return string(d)
 }
