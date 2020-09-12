@@ -4,6 +4,7 @@ import (
 	"cli-browser/files"
 	"cli-browser/networking"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -27,6 +28,7 @@ var findTag = ""
 var findAtt = ""
 var mostKidRecord = 0
 var mostKidAt *ATag
+var allWithKids []*ATag
 
 type Browser struct {
 	Homepage string
@@ -93,7 +95,10 @@ func (b *Browser) Start(arg1, arg2 string) {
 		//}
 	}
 	mostKids(&tagHolder)
-	requestedTag = mostKidAt.Children
+	sort.SliceStable(allWithKids, func(i, j int) bool {
+		return len(allWithKids[i].Children) > len(allWithKids[j].Children)
+	})
+	requestedTag = allWithKids[1].Children
 	for _, c := range requestedTag {
 		countAllChildren(0, "Sponsored", c)
 		fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, foundText)
@@ -229,6 +234,7 @@ func mostKids(at *ATag) {
 			return
 		}
 		m[at.Id] = true
+		allWithKids = append(allWithKids, at)
 		if len(at.Children) > mostKidRecord {
 			mostKidRecord = len(at.Children)
 			mostKidAt = at
