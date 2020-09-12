@@ -11,10 +11,11 @@ import (
 
 func DoGet(route string) string {
 	if os.Getenv("EXAMPLE") != "" {
-		b, _ := ioutil.ReadFile("example2.html")
+		b, _ := ioutil.ReadFile("example3.html")
 		return string(b)
 	}
 	agent := "https://github.com/andrewarrow/cli-browser"
+	agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:80.0) Gecko/20100101 Firefox/80.0"
 	urlString := fmt.Sprintf("%s", route)
 
 	hash := files.Hash(urlString)

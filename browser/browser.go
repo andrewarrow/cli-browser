@@ -25,6 +25,8 @@ var childCount = 0
 var foundText = ""
 var findTag = ""
 var findAtt = ""
+var mostKidRecord = 0
+var mostKidAt *ATag
 
 type Browser struct {
 	Homepage string
@@ -90,6 +92,8 @@ func (b *Browser) Start(arg1, arg2 string) {
 		//	findAtt = tokens[1]
 		//}
 	}
+	mostKids(&tagHolder)
+	requestedTag = mostKidAt.Children
 	for _, c := range requestedTag {
 		countAllChildren(0, "Sponsored", c)
 		fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, foundText)
@@ -212,6 +216,25 @@ func countAllChildren(start int, searchText string, td *ATag) {
 		m[td.Id] = true
 		for _, c := range td.Children {
 			countAllChildren(start+1, searchText, c)
+		}
+	}
+}
+func mostKids(at *ATag) {
+	m := map[int]bool{}
+	for {
+		if len(at.Children) == 0 {
+			return
+		}
+		if m[at.Id] {
+			return
+		}
+		m[at.Id] = true
+		if len(at.Children) > mostKidRecord {
+			mostKidRecord = len(at.Children)
+			mostKidAt = at
+		}
+		for _, c := range at.Children {
+			mostKids(c)
 		}
 	}
 }
