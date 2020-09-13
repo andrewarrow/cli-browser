@@ -98,7 +98,15 @@ func (b *Browser) Start(arg1, arg2 string) {
 	sort.SliceStable(allWithKids, func(i, j int) bool {
 		return len(allWithKids[i].Children) > len(allWithKids[j].Children)
 	})
-	requestedTag = allWithKids[1].Children
+	kidIndex := 0
+
+	for {
+		if allWithKids[kidIndex].Children[0].Name != "option" {
+			break
+		}
+		kidIndex++
+	}
+	requestedTag = allWithKids[kidIndex].Children
 	for _, c := range requestedTag {
 		countAllChildren(0, "Sponsored", c)
 		fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, foundText)
