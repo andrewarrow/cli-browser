@@ -12,11 +12,13 @@ import (
 )
 
 var body bool
-var tables = 0
+var script bool
+var style bool
 var trOn = false
 var tagId = 0
 var curTag *ATag
 var foundTag *ATag
+var foundText []string
 var prevTag = ""
 var prevPrevTag = ""
 var prevTagAtts = map[string]string{}
@@ -24,7 +26,6 @@ var prevPrevTagAtts = map[string]string{}
 var tagHolder = ATag{}
 var tagMap = map[int]*ATag{}
 var childCount = 0
-var foundText = ""
 var findTag = ""
 var findAtt = ""
 var mostKidRecord = 0
@@ -111,18 +112,14 @@ func (b *Browser) Start(arg1, arg2 string) {
 	for _, c := range requestedTag {
 		countAllChildren(0, "Sponsored", c)
 		//out of 5 stars
-		fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, foundText)
+		fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, "")
 		if findTag != "" {
 			findTagInChildren(0, c)
 		}
 		foundTag = nil
-		findTextInChildren("out of 5 stars", c)
-		if foundTag != nil {
-			fmt.Println(foundTag.Text)
-			div := foundTag.Parent.Parent.Parent.Parent.Parent.Parent
-			findTextInChildren("", div.Children[1])
-			fmt.Println(foundTag.Text)
-		}
+		foundText = []string{}
+		findTextInChildren(c)
+		fmt.Println(foundText)
 		if c.Id == 480 {
 			walkDivs("", c)
 		}
@@ -142,6 +139,12 @@ func handleTag(z *html.Tokenizer) bool {
 		if body == false {
 			return true
 		}
+		if script == true {
+			return true
+		}
+		if style == true {
+			return true
+		}
 		t := strings.TrimSpace(string(z.Text()))
 		if t == "" {
 			return true
@@ -159,6 +162,12 @@ func handleTag(z *html.Tokenizer) bool {
 		if body == false {
 			return true
 		}
+		if script == true {
+			script = false
+		}
+		if style == true {
+			style = false
+		}
 		//tn, _ := z.TagName()
 		//tns := string(tn)
 		//fmt.Printf("ending %s -> %s,%s\n", tns, curTag.Name, curTag.Parent.Name)
@@ -173,6 +182,13 @@ func handleTag(z *html.Tokenizer) bool {
 
 		if tns == "body" {
 			body = true
+		}
+
+		if tns == "script" {
+			script = true
+		}
+		if tns == "style" {
+			style = true
 		}
 
 		if body == false {
@@ -220,12 +236,11 @@ func findTagInChildren(start int, td *ATag) {
 		}
 	}
 }
-func findTextInChildren(s string, td *ATag) {
+func findTextInChildren(td *ATag) {
 	m := map[int]bool{}
 	for {
-		if len(td.Children) == 0 && strings.Contains(td.Text, s) {
-			foundTag = td
-			//fmt.Println(td.Text)
+		if len(td.Children) == 0 {
+			foundText = append(foundText, td.Text)
 			return
 		}
 		if m[td.Id] {
@@ -233,20 +248,20 @@ func findTextInChildren(s string, td *ATag) {
 		}
 		m[td.Id] = true
 		for _, c := range td.Children {
-			findTextInChildren(s, c)
+			findTextInChildren(c)
 		}
 	}
 }
 func countAllChildren(start int, searchText string, td *ATag) {
 	if start == 0 {
 		childCount = 0
-		foundText = ""
+		//foundText = ""
 	}
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 {
 			if td.Text == searchText {
-				foundText = searchText
+				//foundText = searchText
 			}
 			childCount++
 			return
