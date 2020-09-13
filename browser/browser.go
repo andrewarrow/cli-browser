@@ -16,6 +16,7 @@ var tables = 0
 var trOn = false
 var tagId = 0
 var curTag *ATag
+var foundTag *ATag
 var prevTag = ""
 var prevPrevTag = ""
 var prevTagAtts = map[string]string{}
@@ -114,7 +115,14 @@ func (b *Browser) Start(arg1, arg2 string) {
 		if findTag != "" {
 			findTagInChildren(0, c)
 		}
+		foundTag = nil
 		findTextInChildren("out of 5 stars", c)
+		if foundTag != nil {
+			fmt.Println(foundTag.Text)
+			div := foundTag.Parent.Parent.Parent.Parent.Parent.Parent
+			findTextInChildren("", div.Children[1])
+			fmt.Println(foundTag.Text)
+		}
 		if c.Id == 480 {
 			walkDivs("", c)
 		}
@@ -216,7 +224,8 @@ func findTextInChildren(s string, td *ATag) {
 	m := map[int]bool{}
 	for {
 		if len(td.Children) == 0 && strings.Contains(td.Text, s) {
-			fmt.Println(td.Text)
+			foundTag = td
+			//fmt.Println(td.Text)
 			return
 		}
 		if m[td.Id] {
