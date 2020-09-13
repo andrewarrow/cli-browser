@@ -109,11 +109,15 @@ func (b *Browser) Start(arg1, arg2 string) {
 	requestedTag = allWithKids[kidIndex].Children
 	for _, c := range requestedTag {
 		countAllChildren(0, "Sponsored", c)
+		//out of 5 stars
 		fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, foundText)
 		if findTag != "" {
 			findTagInChildren(0, c)
 		}
-		//walkDivs("", c)
+		findTextInChildren("out of 5 stars", c)
+		if c.Id == 480 {
+			walkDivs("", c)
+		}
 	}
 	//walkDivs("", &tagHolder)
 }
@@ -205,6 +209,22 @@ func findTagInChildren(start int, td *ATag) {
 		}
 		for _, c := range td.Children {
 			findTagInChildren(start+1, c)
+		}
+	}
+}
+func findTextInChildren(s string, td *ATag) {
+	m := map[int]bool{}
+	for {
+		if len(td.Children) == 0 && strings.Contains(td.Text, s) {
+			fmt.Println(td.Text)
+			return
+		}
+		if m[td.Id] {
+			return
+		}
+		m[td.Id] = true
+		for _, c := range td.Children {
+			findTextInChildren(s, c)
 		}
 	}
 }
