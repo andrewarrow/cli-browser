@@ -119,12 +119,23 @@ func (b *Browser) Start(arg1, arg2 string) {
 		foundTag = nil
 		foundText = []string{}
 		findTextInChildren(c)
-		fmt.Println(foundText)
-		if c.Id == 480 {
-			walkDivs("", c)
-		}
+		displayFoundText()
 	}
 	//walkDivs("", &tagHolder)
+}
+
+func displayFoundText() {
+	// i:3.9 out of 5 stars|a:10|span:$78.4
+
+	starsIndex := -1
+	for i, item := range foundText {
+		if strings.HasSuffix(item, " out of 5 stars") {
+			starsIndex = i
+		}
+	}
+	if starsIndex > -1 {
+		fmt.Println(foundText[starsIndex], foundText[starsIndex+1], foundText[starsIndex+2])
+	}
 }
 
 func handleTag(z *html.Tokenizer) bool {
@@ -239,7 +250,7 @@ func findTagInChildren(start int, td *ATag) {
 func findTextInChildren(td *ATag) {
 	m := map[int]bool{}
 	for {
-		if len(td.Children) == 0 {
+		if len(td.Children) == 0 && strings.TrimSpace(td.Text) != "" {
 			foundText = append(foundText, td.Text)
 			return
 		}
