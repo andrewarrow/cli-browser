@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Println("cli-browser")
+	//fmt.Println("cli-browser")
 
 	if len(os.Args) == 1 {
 		fmt.Println("first arg should be url")

@@ -103,7 +103,10 @@ func (b *Browser) Start(arg1, arg2 string) {
 	kidIndex := 0
 
 	for {
-		if allWithKids[kidIndex].Children[0].Name != "option" {
+		foundText = []string{}
+		findTextInChildren(allWithKids[kidIndex])
+		together := strings.Join(foundText, "|")
+		if strings.Index(together, " out of 5 stars") > -1 {
 			break
 		}
 		kidIndex++
@@ -112,7 +115,7 @@ func (b *Browser) Start(arg1, arg2 string) {
 	for _, c := range requestedTag {
 		countAllChildren(0, "Sponsored", c)
 		//out of 5 stars
-		fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, "")
+		//fmt.Printf("%d. %10s (%d) (%s)\n", c.Id, c.Name, childCount-1, "")
 		if findTag != "" {
 			findTagInChildren(0, c)
 		}
@@ -128,13 +131,17 @@ func displayFoundText() {
 	// i:3.9 out of 5 stars|a:10|span:$78.4
 
 	starsIndex := -1
+	sponsored := false
 	for i, item := range foundText {
 		if strings.HasSuffix(item, " out of 5 stars") {
 			starsIndex = i
 		}
+		if item == "Sponsored" {
+			sponsored = true
+		}
 	}
 	if starsIndex > -1 {
-		fmt.Println(foundText[starsIndex], foundText[starsIndex+1], foundText[starsIndex+2])
+		fmt.Println(foundText[starsIndex], foundText[starsIndex+1], foundText[starsIndex+2], sponsored)
 	}
 }
 
@@ -144,7 +151,7 @@ func handleTag(z *html.Tokenizer) bool {
 
 	switch tt {
 	case html.ErrorToken:
-		fmt.Println("ERR", z.Err())
+		//fmt.Println("ERR", z.Err())
 		return false
 	case html.TextToken:
 		if body == false {
